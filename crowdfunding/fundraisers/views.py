@@ -3,14 +3,18 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
+from .permissions import IsOwnerOrReadOnly
 from django.http import Http404
 from .models import Fundraiser
 from .models import Fundraiser, Pledge
 from .serializers import FundraiserSerializer
 from .serializers import FundraiserSerializer, PledgeSerializer
 
+
 class FundraiserListView(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         fundraisers = Fundraiser.objects.all()
         serializer = FundraiserSerializer(fundraisers, many=True)
@@ -19,7 +23,7 @@ class FundraiserListView(APIView):
     def post(self, request):
         serializer = FundraiserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(
                 serializer.data, status=status.HTTP_201_CREATED
                 )
@@ -32,6 +36,7 @@ class FundraiserDetail(APIView):
     def get_object(self, pk):
         try:
             fundraiser = Fundraiser.objects.get(pk=pk)
+            self.check_object_permissions(self.request, fundraiser)
             return fundraiser
         except Fundraiser.DoesNotExist:
             raise Http404
@@ -42,6 +47,7 @@ class FundraiserDetail(APIView):
         return Response(serializer.data)
 
 class PledgeList(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         pledges = Pledge.objects.all()
@@ -51,7 +57,7 @@ class PledgeList(APIView):
     def post(self, request):
         serializer = PledgeSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
