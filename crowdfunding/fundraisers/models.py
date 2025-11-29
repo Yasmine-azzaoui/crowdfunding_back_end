@@ -6,7 +6,7 @@ class Fundraiser(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     goal = models.IntegerField()
-    image = models.URLField()
+    image = models.URLField(null=True)
     is_open = models.BooleanField()
     date_created = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(
