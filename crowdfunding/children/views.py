@@ -12,12 +12,12 @@ from .serializers import ChildrenSerializer
 from .serializers import ChildrenSerializer, 
 
 
-class ChildrenistView(APIView):
+class ChildrenListView(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         children = Children.objects.all()
-        serializer = ChildrenSerializer(fundraisers, many=True)
+        serializer = ChildrenSerializer(children, many=True)
         return Response(serializer.data)
     
     def post(self, request):
