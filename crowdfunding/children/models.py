@@ -15,8 +15,9 @@ class Children(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
         # create or find owned_child  
     fundraiser = models.ForeignKey(
-    'Fundraiser',
-    related_name='owned_child' 
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='owned_child' 
     )
     
 
