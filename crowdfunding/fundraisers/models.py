@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+
 # Create your models here.
 class Fundraiser(models.Model):
     title = models.CharField(max_length=200)
@@ -18,6 +19,7 @@ class Fundraiser(models.Model):
 class Pledge(models.Model):
     amount = models.IntegerField()
     comment = models.CharField(max_length=200)
+    date_created = models.DateTimeField(auto_now_add=True)
     anonymous = models.BooleanField()
     fundraiser = models.ForeignKey(
         'Fundraiser',

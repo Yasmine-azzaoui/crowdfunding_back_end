@@ -1,6 +1,7 @@
 # Create your models here.
 from django.db import models
-from django.contrib.auth import get_user_model
+from fundraisers.models import Fundraiser
+
 
 # Create your models here.
 class Children(models.Model):
@@ -9,15 +10,16 @@ class Children(models.Model):
     DOB= models.DateField()
     description = models.TextField()
     SpecialHelp = models.BooleanField()
-    Specify = models.TextField()
+    Specify = models.TextField(null=True)
     #create list
     image = models.URLField(null=True)
     date_created = models.DateTimeField(auto_now_add=True)
-        # create or find owned_child  
-    fundraiser = models.ForeignKey(
-        get_user_model(),
+
+    fundraisers= models.ForeignKey(
+        Fundraiser,
         on_delete=models.CASCADE,
-        related_name='owned_child' 
+        related_name='owned_fundraisers' 
     )
     
-
+    def __str__(self):
+        return self.firstname

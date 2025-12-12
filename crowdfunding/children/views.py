@@ -9,11 +9,10 @@ from django.http import Http404
 from .models import Children
 from .models import Children
 from .serializers import ChildrenSerializer
-from .serializers import ChildrenSerializer, 
 
 
 class ChildrenListView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get(self, request):
         children = Children.objects.all()
@@ -23,7 +22,7 @@ class ChildrenListView(APIView):
     def post(self, request):
         serializer = ChildrenSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user)
+            serializer.save()
             return Response(
                 serializer.data, status=status.HTTP_201_CREATED
                 )

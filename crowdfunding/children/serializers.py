@@ -1,15 +1,16 @@
 from rest_framework import serializers
 from django.apps import apps
+from .models import Children
+from fundraisers.models import Fundraiser
 
 class ChildrenSerializer(serializers.ModelSerializer):
     fundraiser = serializers.ReadOnlyField(source='fundraiser.id')
 
     class Meta:
-        model = apps.get_model('children.Children')
+        model = Children
         fields = '__all__'
 
 class ChildrenDetailSerializer(ChildrenSerializer):
-    pledges = PledgeSerializer(many=True, read_only=True)
 
     def update(self, instance, validated_data):
         instance.firstname = validated_data.get('firstname', instance.firstname)
@@ -21,6 +22,6 @@ class ChildrenDetailSerializer(ChildrenSerializer):
         instance.image = validated_data.get('image', instance.image)
         instance.is_open = validated_data.get('is_open', instance.is_open)
         instance.date_created = validated_data.get('date_created', instance.date_created)
-        instance.fundraiser = validated_data.get('fundraiser', instance.fundraiser)
+        instance.fundraiser = Fundraiser.objects.get(validated_data.get('fundraiser', instance.fundraiser))
         instance.save()
         return instance

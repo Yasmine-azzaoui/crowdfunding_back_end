@@ -3,6 +3,7 @@ from django.apps import apps
 
 class PledgeSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.id')
+    children = serializers.ReadOnlyField(source='children.id')
     
     class Meta:
         model = apps.get_model('fundraisers.Pledge')

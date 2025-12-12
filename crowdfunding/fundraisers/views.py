@@ -10,6 +10,8 @@ from .models import Fundraiser
 from .models import Fundraiser, Pledge
 from .serializers import FundraiserSerializer
 from .serializers import FundraiserSerializer, PledgeSerializer
+from children.models import Children 
+from children.serializers import ChildrenSerializer
 
 
 class FundraiserListView(APIView):
@@ -31,6 +33,13 @@ class FundraiserListView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+class ChildrenTotal(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, pk):
+        children = Children.objects.all()
+        serializer = ChildrenSerializer(children, many=True)
+        return Response(serializer.data)
 
 class FundraiserDetail(APIView):
     def get_object(self, pk):
