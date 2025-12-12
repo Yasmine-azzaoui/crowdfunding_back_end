@@ -7,12 +7,12 @@ from rest_framework import status, permissions
 from .permissions import IsOwnerOrReadOnly
 from django.http import Http404
 from .models import Children
-from .models import Children
 from .serializers import ChildrenSerializer
+from fundraisers.models import Fundraiser
 
 
 class ChildrenListView(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         children = Children.objects.all()
@@ -20,16 +20,29 @@ class ChildrenListView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
+        fundraiser_id = (
+            request.data.get('fundraisers')
+            or request.data.get('fundraiser')
+            or request.data.get('fundraiser_id')
+        )
+        if not fundraiser_id:
+            return Response({'detail': 'fundraiser id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            fundraiser = Fundraiser.objects.get(pk=fundraiser_id)
+        except Fundraiser.DoesNotExist:
+            return Response({'detail': 'fundraiser not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        owner = getattr(fundraiser, 'owner', None) or getattr(fundraiser, 'user', None) or getattr(fundraiser, 'creator', None)
+        if owner != request.user:
+            return Response({'detail': 'Only the fundraiser owner can add children'}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = ChildrenSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data, status=status.HTTP_201_CREATED
-                )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+            serializer.save(fundraisers=fundraiser)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ChildrenDetail(APIView):
     def get_object(self, pk):
