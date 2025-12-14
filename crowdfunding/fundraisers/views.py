@@ -23,7 +23,7 @@ class FundraiserListView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        serializer = FundraiserSerializer(data=request.data)
+        serializer = FundraiserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save(owner=request.user)
             return Response(
@@ -37,7 +37,7 @@ class FundraiserListView(APIView):
 class ChildrenTotal(APIView):
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request, pk):
-        children = Children.objects.all()
+        children = Children.objects.filter(fundraiser__pk=pk)
         serializer = ChildrenSerializer(children, many=True)
         return Response(serializer.data)
 

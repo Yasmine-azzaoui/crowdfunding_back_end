@@ -93,7 +93,7 @@ class PledgeSerializer(serializers.ModelSerializer):
 class FundraiserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fundraiser
-        fields = ['id', 'title', 'description']  # adjust fields to match your model
+        fields = ['id', 'title', 'description', 'goal', 'is_open']  
 
 
 class FundraiserDetailSerializer(FundraiserSerializer):
