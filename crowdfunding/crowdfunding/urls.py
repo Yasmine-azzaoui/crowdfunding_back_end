@@ -17,13 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 # from django.urls import path
-from django.urls import path, include 
+from django.urls import path, include
 from users.views import CustomAuthToken
-from django.http import HttpResponse ## AI DID THIS
 
 urlpatterns = [
-    path("", lambda request: HttpResponse("API is running 🚀")), ##AI DID THIS
-    path("admin/", admin.site.urls), ## AI DID THIS
     path("admin/", admin.site.urls),
     path('', include('fundraisers.urls')),
     path('', include('children.urls')),
