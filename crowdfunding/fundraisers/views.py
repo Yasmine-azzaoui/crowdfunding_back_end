@@ -8,8 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from .permissions import IsOwnerOrReadOnly
 from django.http import Http404
 from .models import Fundraiser, Pledge
-from .serializers import FundraiserSerializer
-from .serializers import PledgeSerializer
+from .serializers import FundraiserSerializer, FundraiserDetailSerializer, PledgeSerializer
 from children.models import Children 
 from children.serializers import ChildrenSerializer
 
@@ -52,7 +51,7 @@ class FundraiserDetail(APIView):
 
     def get(self, request, pk):
         fundraiser = self.get_object(pk)
-        serializer = FundraiserSerializer(fundraiser)
+        serializer = FundraiserDetailSerializer(fundraiser)  # <- Change this
         return Response(serializer.data)
 
 class PledgeList(APIView):
@@ -114,3 +113,18 @@ class PledgeDetail(APIView):
         self._ensure_can_modify(instance)
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+# Add new dashboard endpoints
+class UserDashboard(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Get fundraisers created by this user
+        my_fundraisers = Fundraiser.objects.filter(owner=request.user)
+        # Get pledges made by this user
+        my_pledges = Pledge.objects.filter(supporter=request.user)
+        
+        return Response({
+            'my_fundraisers': FundraiserSerializer(my_fundraisers, many=True).data,
+            'my_pledges': PledgeSerializer(my_pledges, many=True).data
+        })

@@ -7,4 +7,5 @@ urlpatterns = [
     path('fundraisers/<int:pk>/children/', views.ChildrenTotal.as_view()), 
     ## int:pk means we will get a unique integer ID for each fundraiser
     path('pledges/', views.PledgeList.as_view()),
+    path('dashboard/', views.UserDashboard.as_view()),
 ]

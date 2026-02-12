@@ -93,9 +93,14 @@ class PledgeSerializer(serializers.ModelSerializer):
 class FundraiserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fundraiser
-        fields = ['id', 'title', 'description', 'goal', 'is_open']  
+        fields = ['id', 'title', 'description', 'goal', 'image', 'is_open', 'date_created', 'owner']
+        read_only_fields = ['id', 'date_created', 'owner']
 
 
 class FundraiserDetailSerializer(FundraiserSerializer):
-    # safe: PledgeSerializer is already defined above
     pledges = PledgeSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Fundraiser
+        fields = ['id', 'title', 'description', 'goal', 'image', 'is_open', 'date_created', 'owner', 'pledges']
+        read_only_fields = ['id', 'date_created', 'owner', 'pledges']
