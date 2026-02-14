@@ -25,9 +25,7 @@ class FundraiserListView(APIView):
         serializer = FundraiserSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save(owner=request.user)
-            return Response(
-                serializer.data, status=status.HTTP_201_CREATED
-                )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
@@ -41,21 +39,33 @@ class ChildrenTotal(APIView):
         return Response(serializer.data)
 
 class FundraiserDetail(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
     def get_object(self, pk):
         try:
-            fundraiser = Fundraiser.objects.get(pk=pk)
-            self.check_object_permissions(self.request, fundraiser)
-            return fundraiser
+            return Fundraiser.objects.get(pk=pk)
         except Fundraiser.DoesNotExist:
             raise Http404
 
     def get(self, request, pk):
         fundraiser = self.get_object(pk)
-        serializer = FundraiserDetailSerializer(fundraiser)  # <- Change this
+        serializer = FundraiserDetailSerializer(fundraiser)
         return Response(serializer.data)
 
+    def patch(self, request, pk):
+        fundraiser = self.get_object(pk)
+        # Only owner can update
+        if fundraiser.owner != request.user:
+            raise PermissionDenied("You can only edit your own fundraisers.")
+        
+        serializer = FundraiserSerializer(fundraiser, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class PledgeList(APIView):
-    permission_classes = [permissions.AllowAny]  # allow anonymous POST for money pledges
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         pledges = Pledge.objects.all()
@@ -82,39 +92,7 @@ class PledgeDetail(APIView):
         pledge = self.get_object(pk)
         serializer = PledgeSerializer(pledge)
         return Response(serializer.data)
-    
-    def _ensure_can_modify(self, instance):
-        user = self.request.user
-        if instance.supporter is None:
-            raise PermissionDenied('Anonymous pledges cannot be modified.')
-        if instance.supporter != user and not user.is_staff:
-            raise PermissionDenied('You do not have permission to modify this pledge.')
 
-    def patch(self, request, pk):
-        instance = self.get_object(pk)
-        self._ensure_can_modify(instance)
-        serializer = PledgeSerializer(instance, data=request.data, partial=True, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, pk):
-        instance = self.get_object(pk)
-        self._ensure_can_modify(instance)
-        serializer = PledgeSerializer(instance, data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        instance = self.get_object(pk)
-        self._ensure_can_modify(instance)
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Add new dashboard endpoints
 class UserDashboard(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
